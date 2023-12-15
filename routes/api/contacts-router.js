@@ -1,29 +1,19 @@
 import express from "express";
 
-import contactsService from "../../models/contacts/index.js";
+import contactsController from "../../controllers/movies-controller.js";
 
-const contactsRouter = express.Router()
+import { isEmptyBody } from "../../middleware/index.js";
 
-contactsRouter.get('/', async (req, res, next) => {
-  const result = await contactsService.listContacts();
+const contactsRouter = express.Router();
 
-  res.json(result);
-})
+contactsRouter.get("/", contactsController.getAll);
 
-contactsRouter.get('/:contactId', async (req, res, next) => {
-  res.json({ message: 'template message' })
-})
+contactsRouter.get("/:id", contactsController.getById);
 
-contactsRouter.post('/', async (req, res, next) => {
-  res.json({ message: 'template message' })
-})
+contactsRouter.post("/", isEmptyBody, contactsController.add);
 
-contactsRouter.delete('/:contactId', async (req, res, next) => {
-  res.json({ message: 'template message' })
-})
+contactsRouter.delete("/:id", contactsController.deleteById);
 
-contactsRouter.put('/:contactId', async (req, res, next) => {
-  res.json({ message: 'template message' })
-})
+contactsRouter.put("/:id", isEmptyBody, contactsController.updateById);
 
 export default contactsRouter;
