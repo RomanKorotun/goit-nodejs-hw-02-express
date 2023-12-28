@@ -1,6 +1,8 @@
-import { Schema, model } from "mongoose";
+import mongoose, { Schema, model } from "mongoose";
 import Joi from "joi";
 import { handleSaveError, setUpdateSettings } from "./hooks.js";
+
+mongoose.Schema.Types.String.cast(false);
 
 const contactShema = new Schema(
   {
