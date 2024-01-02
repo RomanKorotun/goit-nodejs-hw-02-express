@@ -6,9 +6,10 @@ const errorMessage = {
   409: "Conflict",
 };
 
-const HttError = (status, message = errorMessage[status]) => {
+const HttpError = (status, message = errorMessage[status]) => {
   const error = new Error(message);
   error.status = status;
   return error;
 };
-export default HttError;
+
+export default HttpError;

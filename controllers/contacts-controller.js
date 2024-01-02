@@ -1,4 +1,4 @@
-import { HttError } from "../helpers/index.js";
+import { HttpError } from "../helpers/index.js";
 import {
   contactAddShema,
   contactUpdateFavoriteShema,
@@ -8,7 +8,25 @@ import Contact from "../models/Contact.js";
 
 const getAll = async (req, res, next) => {
   try {
-    const data = await Contact.find();
+    const { page = 1, limit = 20, favorite } = req.query;
+    const skip = (page - 1) * limit;
+    const { _id: owner } = req.user;
+    if (favorite !== undefined) {
+      const data = await Contact.find(
+        { owner, favorite },
+        "-createdAt -updatedAt",
+        {
+          skip,
+          limit,
+        }
+      ).populate("owner", "email");
+      res.json(data);
+      return;
+    }
+    const data = await Contact.find({ owner }, "-createdAt -updatedAt", {
+      skip,
+      limit,
+    }).populate("owner", "email");
     res.json(data);
   } catch (error) {
     next(error);
@@ -17,10 +35,14 @@ const getAll = async (req, res, next) => {
 
 const getById = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const data = await Contact.findById(id);
+    const { _id: owner } = req.user;
+    const { id: _id } = req.params;
+    const data = await Contact.findOne({ _id, owner }).populate(
+      "owner",
+      "email"
+    );
     if (data === null) {
-      throw HttError(404);
+      throw HttpError(404);
     }
     res.json(data);
   } catch (error) {
@@ -32,9 +54,10 @@ const add = async (req, res, next) => {
   try {
     const { error } = contactAddShema.validate(req.body);
     if (error) {
-      throw HttError(400, error.message);
+      throw HttpError(400, error.message);
     }
-    const data = await Contact.create(req.body);
+    const { _id: owner } = req.user;
+    const data = await Contact.create({ ...req.body, owner });
     res.status(201).json(data);
   } catch (error) {
     next(error);
@@ -45,12 +68,16 @@ const updateById = async (req, res, next) => {
   try {
     const { error } = contactUpdateShema.validate(req.body);
     if (error) {
-      throw HttError(400, error.message);
+      throw HttpError(400, error.message);
     }
-    const { id } = req.params;
-    const data = await Contact.findByIdAndUpdate(id, req.body);
+    const { _id: owner } = req.user;
+    const { id: _id } = req.params;
+    const data = await Contact.findOneAndUpdate(
+      { _id, owner },
+      req.body
+    ).populate("owner", "email");
     if (data === null) {
-      throw HttError(404);
+      throw HttpError(404);
     }
     res.json(data);
   } catch (error) {
@@ -62,12 +89,16 @@ const updateStatusContact = async (req, res, next) => {
   try {
     const { error } = contactUpdateFavoriteShema.validate(req.body);
     if (error) {
-      throw HttError(400, error.message);
+      throw HttpError(400, error.message);
     }
-    const { id } = req.params;
-    const data = await Contact.findByIdAndUpdate(id, req.body);
+    const { _id: owner } = req.user;
+    const { id: _id } = req.params;
+    const data = await Contact.findOneAndUpdate(
+      { _id, owner },
+      req.body
+    ).populate("owner", "email");
     if (data === null) {
-      throw HttError(404);
+      throw HttpError(404);
     }
     res.json(data);
   } catch (error) {
@@ -77,10 +108,11 @@ const updateStatusContact = async (req, res, next) => {
 
 const deleteById = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const data = await Contact.findByIdAndDelete(id);
+    const { _id: owner } = req.user;
+    const { id: _id } = req.params;
+    const data = await Contact.findOneAndDelete({ _id, owner });
     if (data === null) {
-      throw HttError(404);
+      throw HttpError(404);
     }
     res.json({
       message: "contact deleted",
