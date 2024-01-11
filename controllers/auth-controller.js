@@ -1,6 +1,9 @@
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 import "dotenv/config";
+import gravatar from "gravatar";
+import path from "path";
+import fs from "fs/promises";
 import { HttpError } from "../helpers/index.js";
 import User, {
   registerSchema,
@@ -21,8 +24,13 @@ const register = async (req, res, next) => {
     if (user) {
       throw HttpError(409, "Email in use");
     }
+    const avatarURL = gravatar.url(email);
     const hashPassword = await bcryptjs.hash(password, 10);
-    const newUser = await User.create({ ...req.body, password: hashPassword });
+    const newUser = await User.create({
+      ...req.body,
+      avatarURL,
+      password: hashPassword,
+    });
     res.status(201).json({
       user: {
         email: newUser.email,
@@ -93,6 +101,24 @@ const updateSubscription = async (req, res, next) => {
     next(error);
   }
 };
+const updateAvatar = async (req, res, next) => {
+  try {
+    if (req.file === undefined) {
+      throw HttpError(400, "field avatarURL is required");
+    }
+    const { path: oldPath, filename } = req.file;
+    const newPath = path.resolve("public", "avatars", filename);
+    await fs.rename(oldPath, newPath);
+    const avatarURL = path.join("http://localhost:3000", "avatars", filename);
+    const { email, _id } = req.user;
+    const user = await User.findOneAndUpdate({ email, _id }, { avatarURL });
+    res.json({
+      avatarURL: user.avatarURL,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 export default {
   register,
@@ -100,4 +126,5 @@ export default {
   logout,
   current,
   updateSubscription,
+  updateAvatar,
 };
