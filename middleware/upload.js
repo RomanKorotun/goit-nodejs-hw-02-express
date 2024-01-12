@@ -19,8 +19,8 @@ const limits = {
 };
 
 const fileFilter = (req, file, callback) => {
-  const extension = file.originalname.split(".").pop();
-  if (extension === "exe") {
+  const extention = file.originalname.split(".").pop();
+  if (extention === "exe") {
     callback(HttpError(400, "exe not valid extension"));
   }
   callback(null, true);
