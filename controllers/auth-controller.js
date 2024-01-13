@@ -1,6 +1,7 @@
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 import "dotenv/config";
+import Jimp from "jimp";
 import gravatar from "gravatar";
 import path from "path";
 import fs from "fs/promises";
@@ -107,9 +108,10 @@ const updateAvatar = async (req, res, next) => {
       throw HttpError(400, "field avatarURL is required");
     }
     const { path: oldPath, filename } = req.file;
+    (await Jimp.read(oldPath)).resize(250, 250);
     const newPath = path.resolve("public", "avatars", filename);
     await fs.rename(oldPath, newPath);
-    const avatarURL = path.join("http://localhost:3000", "avatars", filename);
+    const avatarURL = path.join("avatars", filename);
     const { email, _id } = req.user;
     const user = await User.findOneAndUpdate({ email, _id }, { avatarURL });
     res.json({
