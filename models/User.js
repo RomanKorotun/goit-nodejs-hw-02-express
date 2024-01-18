@@ -25,6 +25,11 @@ const userSchema = new Schema({
   },
   avatarURL: String,
   token: String,
+  verify: {
+    type: Boolean,
+    default: false,
+  },
+  verificationToken: String,
 });
 
 userSchema.post("save", handleSaveError);
@@ -33,13 +38,19 @@ userSchema.post("findOneAndUpdate", handleSaveError);
 
 export const registerSchema = Joi.object({
   password: Joi.string().required(),
-  email: Joi.string().required(),
+  email: Joi.string().pattern(emailRegexp).required(),
   subscription: Joi.string().valid(...subscriptionList),
 });
 
 export const loginSchema = Joi.object({
   password: Joi.string().required(),
-  email: Joi.string().required(),
+  email: Joi.string().pattern(emailRegexp).required(),
+});
+
+export const verifyEmailSchema = Joi.object({
+  email: Joi.string().pattern(emailRegexp).required().messages({
+    "any.required": "missing required field email",
+  }),
 });
 
 export const userUpdateSubscription = Joi.object({

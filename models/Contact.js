@@ -4,6 +4,8 @@ import { handleSaveError, setUpdateSettings } from "./hooks.js";
 
 mongoose.Schema.Types.String.cast(false);
 
+const emailRegexp = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+
 const contactShema = new Schema(
   {
     name: {
@@ -12,6 +14,7 @@ const contactShema = new Schema(
     },
     email: {
       type: String,
+      match: emailRegexp,
       required: true,
     },
     phone: {
@@ -44,7 +47,7 @@ export const contactAddShema = Joi.object({
   name: Joi.string().required().messages({
     "any.required": "missing required name field",
   }),
-  email: Joi.string().required().messages({
+  email: Joi.string().pattern(emailRegexp).required().messages({
     "any.required": "missing required email field",
   }),
   phone: Joi.string().required().messages({
@@ -55,7 +58,7 @@ export const contactAddShema = Joi.object({
 
 export const contactUpdateShema = Joi.object({
   name: Joi.string(),
-  email: Joi.string(),
+  email: Joi.string().pattern(emailRegexp),
   phone: Joi.string(),
   favorite: Joi.boolean(),
 });
