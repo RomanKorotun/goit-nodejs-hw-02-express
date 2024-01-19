@@ -83,7 +83,7 @@ const resendVerifyEmail = async (req, res, next) => {
     }
     const { email } = req.body;
     const user = await User.findOne({ email });
-    if (user.verify === true) {
+    if (user.verify) {
       throw HttpError(400, "Verification has already been passed");
     }
     const verifyEmail = {
